@@ -8,11 +8,17 @@ from functools import wraps
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
+app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB
 
-client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 APP_PASSWORD = os.environ.get("APP_PASSWORD", "")
+
+
+def get_client():
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise ValueError("ANTHROPIC_API_KEY が設定されていません。Renderの環境変数を確認してください。")
+    return anthropic.Anthropic(api_key=api_key)
 
 EXTRACTION_PROMPT = """あなたは不動産取引の専門家です。
 添付されたPDFファイル（管理規約または重要事項に係る調査報告書）を精読し、
@@ -131,12 +137,11 @@ def analyze():
     })
 
     try:
-        response = client.messages.create(
+        response = get_client().messages.create(
             model="claude-opus-4-7",
             max_tokens=8000,
             thinking={"type": "adaptive"},
             messages=[{"role": "user", "content": content_blocks}],
-            betas=["pdfs-2024-09-25"],
         )
 
         result_text = ""
