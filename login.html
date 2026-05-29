@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ログイン｜重要事項説明書 作成支援ツール</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Hiragino Sans', 'Yu Gothic', Meiryo, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-card {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 380px;
+    }
+    .login-card h1 {
+      font-size: 1.1rem;
+      color: #2b6cb0;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .login-card p {
+      font-size: 0.82rem;
+      color: #718096;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 6px;
+    }
+    input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e0;
+      border-radius: 7px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="password"]:focus { border-color: #2b6cb0; }
+    .error {
+      margin-top: 10px;
+      font-size: 0.83rem;
+      color: #e53e3e;
+      text-align: center;
+    }
+    button {
+      display: block;
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      background: #2b6cb0;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: #2c5282; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <h1>📋 重要事項説明書 作成支援ツール</h1>
+    <p>パスワードを入力してください</p>
+    <form method="post">
+      <label for="password">パスワード</label>
+      <input type="password" id="password" name="password" autofocus autocomplete="current-password">
+      <div class="error" id="error-msg" style="display:none">パスワードが違います</div>
+      <button type="submit">ログイン</button>
+    </form>
+  </div>
+<script>
+  if (new URLSearchParams(location.search).get('error')) {
+    document.getElementById('error-msg').style.display = 'block';
+  }
+</script>
+</body>
+</html>
