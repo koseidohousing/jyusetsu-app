@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>重要事項説明書 作成支援ツール</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Sans', 'Yu Gothic', Meiryo, sans-serif;
+      background: #f0f4f8;
+      color: #2d3748;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #2b6cb0;
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .header-title h1 { font-size: 1.3rem; font-weight: 700; }
+    .header-title p { font-size: 0.82rem; opacity: 0.85; margin-top: 3px; }
+    .logout-btn {
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 6px;
+      color: white;
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+    .logout-btn:hover { background: rgba(255,255,255,0.25); }
+
+    main {
+      max-width: 960px;
+      margin: 32px auto;
+      padding: 0 16px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: #2b6cb0;
+      border-bottom: 2px solid #bee3f8;
+      padding-bottom: 8px;
+    }
+
+    .drop-zone {
+      border: 2px dashed #90cdf4;
+      border-radius: 10px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #ebf8ff;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: #2b6cb0;
+      background: #bee3f8;
+    }
+    .drop-zone svg { display: block; margin: 0 auto 12px; color: #4299e1; }
+    .drop-zone p { font-size: 0.95rem; color: #4a5568; }
+    .drop-zone span { font-size: 0.8rem; color: #718096; }
+
+    #file-input { display: none; }
+
+    #file-list {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .file-chip {
+      background: #ebf8ff;
+      border: 1px solid #90cdf4;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.82rem;
+      color: #2b6cb0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .file-chip button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #718096;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0;
+    }
+    .file-chip button:hover { color: #e53e3e; }
+
+    #analyze-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: #2b6cb0;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 20px;
+    }
+    #analyze-btn:hover:not(:disabled) { background: #2c5282; }
+    #analyze-btn:disabled { background: #a0aec0; cursor: not-allowed; }
+
+    #status {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #4a5568;
+    }
+    #status.error { color: #e53e3e; }
+
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid #bee3f8;
+      border-top-color: #2b6cb0;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #result-card { display: none; }
+
+    .result-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .result-toolbar h2 { border: none; margin: 0; padding: 0; }
+
+    #result-meta {
+      font-size: 0.8rem;
+      color: #718096;
+      margin-bottom: 16px;
+    }
+
+    .action-btn {
+      padding: 6px 14px;
+      background: #edf2f7;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .action-btn:hover { background: #e2e8f0; }
+
+    #result-content {
+      line-height: 1.8;
+      font-size: 0.92rem;
+      overflow-x: auto;
+    }
+
+    .item-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin: 10px 0;
+      overflow: hidden;
+    }
+    .item-card-header {
+      background: #ebf8ff;
+      padding: 8px 14px;
+      font-weight: 700;
+      color: #2c5282;
+      font-size: 0.9rem;
+      border-bottom: 1px solid #bee3f8;
+    }
+    .item-card-body { padding: 10px 14px; }
+    .item-row {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 8px;
+      padding: 4px 0;
+      border-bottom: 1px solid #f7fafc;
+      font-size: 0.88rem;
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-label { font-weight: 600; color: #4a5568; white-space: nowrap; }
+    .item-value { color: #2d3748; white-space: pre-wrap; }
+    .item-value.missing { color: #a0aec0; font-style: italic; }
+    .item-ref { color: #718096; font-size: 0.82rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">
+    <h1>📋 重要事項説明書 作成支援ツール</h1>
+    <p>管理規約・重要事項に係る調査報告書のPDFをアップロードして、必要項目を自動抽出します</p>
+  </div>
+  {% if password_enabled %}
+  <a href="/logout" class="logout-btn">ログアウト</a>
+  {% endif %}
+</header>
+
+<main>
+  <div class="card">
+    <h2>PDFファイルのアップロード</h2>
+
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+      </svg>
+      <p>クリックまたはドラッグ＆ドロップでPDFを選択</p>
+      <span>管理規約・重要事項調査報告書など（複数選択可・最大50MB/ファイル）</span>
+    </div>
+    <input type="file" id="file-input" accept="application/pdf" multiple>
+
+    <div id="file-list"></div>
+
+    <button id="analyze-btn" disabled>AI分析を開始する</button>
+    <div id="status"></div>
+  </div>
+
+  <div class="card" id="result-card">
+    <div class="result-toolbar">
+      <h2 style="font-size:1rem;font-weight:700;color:#2b6cb0;">抽出結果</h2>
+      <button class="action-btn" id="copy-btn">テキストコピー</button>
+    </div>
+    <div id="result-meta"></div>
+    <div id="result-content"></div>
+  </div>
+</main>
+
+<script>
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const fileList = document.getElementById('file-list');
+  const analyzeBtn = document.getElementById('analyze-btn');
+  const status = document.getElementById('status');
+  const resultCard = document.getElementById('result-card');
+  const resultContent = document.getElementById('result-content');
+  const resultMeta = document.getElementById('result-meta');
+  const copyBtn = document.getElementById('copy-btn');
+
+  let selectedFiles = [];
+  let rawMarkdown = '';
+
+  fileInput.addEventListener('change', () => addFiles(Array.from(fileInput.files)));
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const pdfs = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
+    if (pdfs.length) addFiles(pdfs);
+    else { status.textContent = 'PDFファイルのみアップロード可能です'; status.className = 'error'; }
+  });
+
+  function addFiles(files) {
+    files.forEach(f => {
+      if (!selectedFiles.find(s => s.name === f.name && s.size === f.size)) selectedFiles.push(f);
+    });
+    renderFileList();
+  }
+
+  function renderFileList() {
+    fileList.innerHTML = '';
+    selectedFiles.forEach((f, i) => {
+      const chip = document.createElement('div');
+      chip.className = 'file-chip';
+      chip.innerHTML = `📄 ${escHtml(f.name)} <button onclick="removeFile(${i})" title="削除">×</button>`;
+      fileList.appendChild(chip);
+    });
+    analyzeBtn.disabled = selectedFiles.length === 0;
+    status.textContent = '';
+    status.className = '';
+  }
+
+  function removeFile(i) { selectedFiles.splice(i, 1); renderFileList(); }
+
+  analyzeBtn.addEventListener('click', async () => {
+    if (!selectedFiles.length) return;
+    analyzeBtn.disabled = true;
+    resultCard.style.display = 'none';
+    status.className = '';
+    status.innerHTML = '<span class="spinner"></span>AIが分析中です。しばらくお待ちください…（1〜3分程度）';
+
+    const formData = new FormData();
+    selectedFiles.forEach(f => formData.append('pdfs', f));
+
+    try {
+      const res = await fetch('/analyze', { method: 'POST', body: formData });
+      const data = await res.json();
+
+      if (data.error) {
+        status.textContent = `エラー: ${data.error}`;
+        status.className = 'error';
+      } else {
+        status.textContent = '✅ 分析完了';
+        rawMarkdown = data.result;
+        resultMeta.textContent =
+          `対象ファイル: ${data.files.join('、')}　／　使用トークン: 入力 ${data.usage.input_tokens.toLocaleString()} / 出力 ${data.usage.output_tokens.toLocaleString()}`;
+        resultContent.innerHTML = renderItems(data.result);
+        resultCard.style.display = 'block';
+        resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } catch (e) {
+      status.textContent = `通信エラー: ${e.message}`;
+      status.className = 'error';
+    } finally {
+      analyzeBtn.disabled = false;
+    }
+  });
+
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(rawMarkdown).then(() => {
+      copyBtn.textContent = 'コピー済み！';
+      setTimeout(() => { copyBtn.textContent = 'テキストコピー'; }, 2000);
+    });
+  });
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function renderItems(md) {
+    const blocks = md.split(/(?=^### )/m).filter(b => b.trim());
+    if (!blocks.length) return `<div style="white-space:pre-wrap">${escHtml(md)}</div>`;
+
+    return blocks.map(block => {
+      const lines = block.split('\n');
+      const heading = lines[0].replace(/^###\s*/, '').trim();
+      const body = lines.slice(1).join('\n');
+
+      const contentMatch = body.match(/\*\*内容\*\*[：:]\s*([\s\S]+?)(?=\n- \*\*|$)/);
+      const refMatch = body.match(/\*\*参照元\*\*[：:]\s*(.+?)(?=\n|$)/);
+
+      const contentVal = contentMatch ? contentMatch[1].trim() : (body.trim() || '—');
+      const refVal = refMatch ? refMatch[1].trim() : '';
+      const isMissing = contentVal === '記載なし';
+
+      return `
+<div class="item-card">
+  <div class="item-card-header">${escHtml(heading)}</div>
+  <div class="item-card-body">
+    <div class="item-row">
+      <div class="item-label">内容</div>
+      <div class="item-value${isMissing ? ' missing' : ''}">${escHtml(contentVal)}</div>
+    </div>
+    ${refVal ? `<div class="item-row">
+      <div class="item-label">参照元</div>
+      <div class="item-ref">${escHtml(refVal)}</div>
+    </div>` : ''}
+  </div>
+</div>`;
+    }).join('');
+  }
+</script>
+</body>
+</html>
